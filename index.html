@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寻宝游戏：神庙探险</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px #ffcc00;
+            letter-spacing: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .progress-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #ffcc00, #ff9900);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .step {
+            text-align: center;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+        
+        .step.active {
+            opacity: 1;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        .game-console {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #ffcc00;
+            border-radius: 10px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+        
+        .console-line {
+            margin-bottom: 10px;
+            line-height: 1.5;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        .console-line.success {
+            color: #4caf50;
+        }
+        
+        .console-line.error {
+            color: #f44336;
+        }
+        
+        .console-line.highlight {
+            color: #ffcc00;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: linear-gradient(to bottom, #ffcc00, #ff9900);
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .treasure-image {
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+        
+        .treasure-image.show {
+            opacity: 1;
+        }
+        
+        .treasure-image img {
+            max-width: 200px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
+        }
+        
+        .treasure-reveal {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-top: 20px;
+            color: #ffcc00;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 1s;
+        }
+        
+        .treasure-reveal.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        /* 打字机效果 */
+        .typewriter {
+            overflow: hidden;
+            border-right: 0.15em solid #ffcc00;
+            white-space: nowrap;
+            margin: 0 auto;
+            letter-spacing: 0.15em;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #ffcc00; }
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>寻宝游戏：神庙探险</h1>
+            <p class="subtitle">跟随线索，解开谜题，寻找失落的宝藏！</p>
+        </div>
+        
+        <div class="game-area">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-steps">
+                    <div class="step" id="step1">寻找线索</div>
+                    <div class="step" id="step2">解码古文</div>
+                    <div class="step" id="step3">神庙探险</div>
+                    <div class="step" id="step4">解开谜题</div>
+                    <div class="step" id="step5">躲避陷阱</div>
+                    <div class="step" id="step6">获得宝藏</div>
+                </div>
+            </div>
+            
+            <div class="game-console" id="game-console">
+                <!-- 游戏输出将在这里显示 -->
+            </div>
+            
+            <div class="controls">
+                <button id="start-btn">开始寻宝</button>
+                <button id="reset-btn">重新开始</button>
+            </div>
+            
+            <div class="treasure-image" id="treasure-image">
+                <img src="https://cdn.pixabay.com/photo/2017/08/27/00/46/treasure-2683785_960_720.png" alt="宝藏">
+            </div>
+            
+            <div class="treasure-reveal" id="treasure-reveal">
+                <!-- 宝藏揭示文本将在这里显示 -->
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>寻宝游戏 © 2025 | 准备好开始你的冒险了吗？</p>
+        </div>
+    </div>
+
+    <script>
+        // 模拟宝藏地图API（扩展版）
+        class TreasureMap {
+            static getInitialClue() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("在古老的图书馆里找到了第一个线索：'寻找被遗忘的神庙，那里藏着永恒的财富'");
+                    }, 1500);
+                });
+            }
+            
+            static decodeAncientScript(clue) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        if (!clue) {
+                            reject("没有线索可以解码!");
+                        }
+                        resolve("解码成功! 线索指向丛林深处的太阳神庙...");
+                    }, 2000);
+                });
+            }
+            
+            static searchTemple(location) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.4) {
+                            reject("糟糕!遇到了神庙守卫! 必须悄悄离开...");
+                        }
+                        resolve("找到了神庙入口! 里面有一个神秘的箱子...");
+                    }, 2500);
+                });
+            }
+            
+            // 新增：解开谜题
+            static solvePuzzle() {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.3) {
+                            reject("谜题太难了! 需要重新思考解法...");
+                        }
+                        resolve("成功解开古老的谜题! 箱子打开了...");
+                    }, 2000);
+                });
+            }
+            
+            // 新增：躲避陷阱
+            static avoidTraps() {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.35) {
+                            reject("触发了陷阱! 落石挡住了去路...");
+                        }
+                        resolve("灵巧地避开了所有陷阱! 通往宝藏的道路畅通无阻...");
+                    }, 1800);
+                });
+            }
+            
+            static openTreasureBox() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("恭喜!你找到了传说中的黄金圣杯!");
+                    }, 1500);
+                });
+            }
+        }
+        
+        // DOM元素
+        const gameConsole = document.getElementById('game-console');
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const progressFill = document.getElementById('progress-fill');
+        const treasureImage = document.getElementById('treasure-image');
+        const treasureReveal = document.getElementById('treasure-reveal');
+        const steps = document.querySelectorAll('.step');
+        
+        // 添加控制台输出
+        function addConsoleLine(text, className = '') {
+            const line = document.createElement('div');
+            line.classList.add('console-line');
+            if (className) line.classList.add(className);
+            line.textContent = `> ${text}`;
+            gameConsole.appendChild(line);
+            gameConsole.scrollTop = gameConsole.scrollHeight;
+            
+            // 模拟打字机效果
+            line.style.width = '0';
+            setTimeout(() => {
+                line.style.width = '100%';
+                line.style.transition = 'width 3s';
+            }, 100);
+        }
+        
+        // 更新进度条
+        function updateProgress(step) {
+            const progress = (step / 6) * 100;
+            progressFill.style.width = `${progress}%`;
+            
+            // 更新步骤状态
+            steps.forEach((s, index) => {
+                if (index < step) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        }
+        
+        // 使用async/await重写的寻宝过程
+        async function findTreasureAsync() {
+            try {
+                addConsoleLine("寻宝之旅开始...", "highlight");
+                updateProgress(1);
+                
+                // 步骤1: 获取初始线索
+                const clue = await TreasureMap.getInitialClue();
+                addConsoleLine(clue, "success");
+                updateProgress(2);
+                
+                // 步骤2: 解码古文
+                const location = await TreasureMap.decodeAncientScript(clue);
+                addConsoleLine(location, "success");
+                updateProgress(3);
+                
+                // 步骤3: 探索神庙
+                const templeResult = await TreasureMap.searchTemple(location);
+                addConsoleLine(templeResult, "success");
+                updateProgress(4);
+                
+                // 新增步骤4: 解开谜题
+                addConsoleLine("箱子上刻着古老的谜题...", "highlight");
+                const puzzleResult = await TreasureMap.solvePuzzle();
+                addConsoleLine(puzzleResult, "success");
+                updateProgress(5);
+                
+                // 新增步骤5: 躲避陷阱
+                addConsoleLine("但通往宝藏的路上布满了陷阱...", "highlight");
+                const trapResult = await TreasureMap.avoidTraps();
+                addConsoleLine(trapResult, "success");
+                updateProgress(6);
+                
+                // 步骤6: 打开宝箱
+                const treasure = await TreasureMap.openTreasureBox();
+                addConsoleLine(treasure, "highlight");
+                
+                // 显示宝藏
+                setTimeout(() => {
+                    treasureImage.classList.add('show');
+                    treasureReveal.textContent = "你找到了传说中的黄金圣杯！";
+                    treasureReveal.classList.add('show');
+                }, 1000);
+                
+            } catch (error) {
+                addConsoleLine(`任务失败: ${error}`, "error");
+                addConsoleLine("尝试重新开始寻宝...", "highlight");
+                startBtn.disabled = false;
+            }
+        }
+        
+        // 重置游戏
+        function resetGame() {
+            gameConsole.innerHTML = '';
+            progressFill.style.width = '0';
+            treasureImage.classList.remove('show');
+            treasureReveal.classList.remove('show');
+            treasureReveal.textContent = '';
+            
+            steps.forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            startBtn.disabled = false;
+        }
+        
+        // 事件监听
+        startBtn.addEventListener('click', () => {
+            startBtn.disabled = true;
+            resetBtn.disabled = true;
+            resetGame();
+            findTreasureAsync().finally(() => {
+                resetBtn.disabled = false;
+            });
+        });
+        
+        resetBtn.addEventListener('click', resetGame);
+        
+        // 初始状态
+        resetGame();
+    </script>
+</body>
+</html>
